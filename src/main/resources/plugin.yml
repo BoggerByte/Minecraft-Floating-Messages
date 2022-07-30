@@ -1,0 +1,6 @@
+name: FloatingMessages
+version: '${version}'
+main: me.boggerbyte.floatingmessages.Main
+api-version: 1.18
+authors: [ BoggerByte ]
+description: Lightweight plugin to show player messages above their heads
