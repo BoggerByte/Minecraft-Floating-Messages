@@ -29,26 +29,28 @@ public class FloatingMessageSpawner {
     }
 
     public void mountOn(Entity entity, TextComponent chatMessage) {
-        var duration = chatMessage.content().length() * readSpeed;
-        var clampedDuration = Math.max(minDuration, Math.min(maxDuration, duration));
-
         var currentMounts = entity.getPassengers().stream()
                 .filter(e -> e.getScoreboardTags().contains(floatingMessageTag))
                 .toList();
-        var currentMount = currentMounts.isEmpty() ? null : currentMounts.get(0);
+        var currentMount = currentMounts.isEmpty() ? null : (AreaEffectCloud) currentMounts.get(0);
+        var currentMountDuration = currentMount == null ? 0 : currentMount.getDuration() - currentMount.getTicksLived();
+
+        var computedDuration = chatMessage.content().length() * readSpeed;
+        var clampedDuration = Math.max(minDuration, Math.min(maxDuration, computedDuration));
+        var duration = Math.max(clampedDuration, currentMountDuration);
 
         var lines = new ArrayList<Entity>();
         var messageLines = messageFormatter.format(chatMessage);
         for (TextComponent messageLine : messageLines) {
             var location = entity.getLocation().add(0, 1, 0);
-            var p = entity.getWorld().spawn(location, AreaEffectCloud.class);
-            p.setRadius(0);
-            p.setWaitTime(0);
-            p.setDuration(clampedDuration);
-            p.setCustomNameVisible(true);
-            p.customName(messageLine);
-            p.addScoreboardTag(floatingMessageTag);
-            lines.add(p);
+            var particle = entity.getWorld().spawn(location, AreaEffectCloud.class);
+            particle.setRadius(0);
+            particle.setWaitTime(0);
+            particle.setDuration(duration);
+            particle.setCustomNameVisible(true);
+            particle.customName(messageLine);
+            particle.addScoreboardTag(floatingMessageTag);
+            lines.add(particle);
         }
 
         Collections.reverse(lines);
