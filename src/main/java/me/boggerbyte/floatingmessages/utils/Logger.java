@@ -5,8 +5,8 @@ import me.boggerbyte.floatingmessages.Main;
 import java.util.logging.Level;
 
 public class Logger {
+    private static final java.util.logging.Logger logger = Main.getInstance().getLogger();
     public static void log(Level level, String message) {
-        var logger = Main.getInstance().getLogger();
         logger.log(level, message);
     }
 }
