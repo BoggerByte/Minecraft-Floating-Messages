@@ -8,7 +8,7 @@ import org.bukkit.entity.Entity;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class FloatingMessageSpawner {
+public class FloatingMessageFactory {
     private final static String floatingMessageTag = "floating_message_line_entity_tag";
 
     private final FloatingMessageFormatter messageFormatter;
@@ -16,7 +16,7 @@ public class FloatingMessageSpawner {
     private final int maxDuration;
     private final int readSpeed;
 
-    public FloatingMessageSpawner(
+    public FloatingMessageFactory(
             FloatingMessageFormatter messageFormatter,
             int minDuration,
             int maxDuration,
@@ -28,19 +28,29 @@ public class FloatingMessageSpawner {
         this.readSpeed = readSpeed;
     }
 
-    public void mountOn(Entity entity, TextComponent chatMessage) {
-        var currentMounts = entity.getPassengers().stream()
+    private Entity getCurrentMount(Entity entity) {
+        return entity.getPassengers().stream()
                 .filter(e -> e.getScoreboardTags().contains(floatingMessageTag))
-                .toList();
-        var currentMount = currentMounts.isEmpty() ? null : (AreaEffectCloud) currentMounts.get(0);
-        var currentMountDuration = currentMount == null ? 0 : currentMount.getDuration() - currentMount.getTicksLived();
+                .findFirst().orElse(null);
+    }
 
-        var computedDuration = chatMessage.content().length() * readSpeed;
-        var clampedDuration = Math.max(minDuration, Math.min(maxDuration, computedDuration));
-        var duration = Math.max(clampedDuration, currentMountDuration);
+    private int computeDuration(TextComponent chatMessage) {
+        var readingDuration = chatMessage.content().length() * readSpeed;
+        return Math.max(minDuration, Math.min(maxDuration, readingDuration));
+    }
+
+    public void spawnOn(Entity entity, TextComponent chatMessage) {
+        var currentLinesMount = (AreaEffectCloud) getCurrentMount(entity);
+        var currentLinesMountDuration = currentLinesMount == null ? 0 :
+                currentLinesMount.getDuration() - currentLinesMount.getTicksLived();
+
+        var computedDuration = computeDuration(chatMessage);
+        var duration = Math.max(computedDuration, currentLinesMountDuration);
+
+        var messageLines = messageFormatter.format(chatMessage);
+        Collections.reverse(messageLines);
 
         var lines = new ArrayList<Entity>();
-        var messageLines = messageFormatter.format(chatMessage);
         for (TextComponent messageLine : messageLines) {
             var location = entity.getLocation().add(0, 1, 0);
             var particle = entity.getWorld().spawn(location, AreaEffectCloud.class);
@@ -53,23 +63,19 @@ public class FloatingMessageSpawner {
             lines.add(particle);
         }
 
-        Collections.reverse(lines);
+        if (currentLinesMount != null) lines.add(currentLinesMount);
 
-        Entity mount = entity;
+        Entity linesMount = entity;
         for (Entity line : lines) {
-            mount.addPassenger(line);
-            mount = line;
-        }
-
-        if (currentMount != null) {
-            var lastLine = lines.get(lines.size() - 1);
-            lastLine.addPassenger(currentMount);
+            linesMount.addPassenger(line);
+            linesMount = line;
         }
     }
 
     public void despawnAll() {
-        Bukkit.getWorlds().forEach(w -> w.getEntities().forEach(e -> {
-            if (e.getScoreboardTags().contains(floatingMessageTag)) e.remove();
-        }));
+        Bukkit.getWorlds()
+                .forEach(w -> w.getEntities().stream()
+                        .filter(e -> e.getScoreboardTags().contains(floatingMessageTag))
+                        .forEach(Entity::remove));
     }
 }
