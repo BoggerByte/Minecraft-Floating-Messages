@@ -1,7 +1,7 @@
 package me.boggerbyte.floatingmessages;
 
 import me.boggerbyte.floatingmessages.floating_message.FloatingMessageFormatter;
-import me.boggerbyte.floatingmessages.floating_message.FloatingMessageSpawner;
+import me.boggerbyte.floatingmessages.floating_message.FloatingMessageFactory;
 import me.boggerbyte.floatingmessages.listeners.ChatListener;
 import me.boggerbyte.floatingmessages.utils.Logger;
 import org.bukkit.plugin.Plugin;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 
 public final class Main extends JavaPlugin {
-    private FloatingMessageSpawner floatingMessageSpawner;
+    private FloatingMessageFactory floatingMessageFactory;
 
     @Override
     public void onLoad() {
@@ -25,7 +25,8 @@ public final class Main extends JavaPlugin {
                 "max-duration",
                 "read-speed"
         };
-        Arrays.stream(configRequiredFields).filter(field -> !config.contains(field, true))
+        Arrays.stream(configRequiredFields)
+                .filter(field -> !config.contains(field, true))
                 .forEach(field -> Logger.log(Level.WARNING, "Missing required config field <" + field + ">. Using default value"));
     }
 
@@ -34,18 +35,18 @@ public final class Main extends JavaPlugin {
         var messageFormatter = new FloatingMessageFormatter(
                 getConfig().getInt("max-lines-width"),
                 getConfig().getInt("max-lines-amount"));
-        floatingMessageSpawner = new FloatingMessageSpawner(
+        floatingMessageFactory = new FloatingMessageFactory(
                 messageFormatter,
                 getConfig().getInt("min-duration"),
                 getConfig().getInt("max-duration"),
                 getConfig().getInt("read-speed"));
 
-        getServer().getPluginManager().registerEvents(new ChatListener(floatingMessageSpawner), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(floatingMessageFactory), this);
     }
 
     @Override
     public void onDisable() {
-        floatingMessageSpawner.despawnAll();
+        floatingMessageFactory.despawnAll();
     }
 
     public static Plugin getInstance() {
