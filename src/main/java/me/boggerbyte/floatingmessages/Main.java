@@ -32,14 +32,16 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        var config = getConfig();
+
         var messageFormatter = new FloatingMessageFormatter(
-                getConfig().getInt("max-lines-width"),
-                getConfig().getInt("max-lines-amount"));
+                config.getInt("max-lines-width"),
+                config.getInt("max-lines-amount"));
         floatingMessageFactory = new FloatingMessageFactory(
                 messageFormatter,
-                getConfig().getInt("min-duration"),
-                getConfig().getInt("max-duration"),
-                getConfig().getInt("read-speed"));
+                config.getInt("min-duration"),
+                config.getInt("max-duration"),
+                config.getInt("read-speed"));
 
         getServer().getPluginManager().registerEvents(new ChatListener(floatingMessageFactory), this);
     }
