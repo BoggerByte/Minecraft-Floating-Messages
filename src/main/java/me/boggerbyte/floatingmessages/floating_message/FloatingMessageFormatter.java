@@ -6,10 +6,9 @@ import org.apache.commons.lang.WordUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FloatingMessageFormatter {
-    private final static String ellipsis = "...";
-
     private final int maxLinesWidth;
     private final int maxLinesAmount;
 
@@ -21,16 +20,14 @@ public class FloatingMessageFormatter {
     public List<TextComponent> format(TextComponent chatMessage) {
         String content = chatMessage.content();
 
-        var contentLines = WordUtils.wrap(content, maxLinesWidth).split("\n");
-        if (contentLines.length == 1 && contentLines[0].length() > maxLinesWidth) {
-            contentLines[0] += " " + ellipsis;
-        }
-        if (contentLines.length > maxLinesAmount) {
-            contentLines = Arrays.copyOfRange(contentLines, 0, maxLinesAmount);
-            contentLines[maxLinesAmount - 1] += " " + ellipsis;
+        var wrapped = WordUtils.wrap(content, maxLinesWidth, null, true);
+        var wrappedLines = wrapped.split(System.lineSeparator());
+        if (wrappedLines.length > maxLinesAmount) {
+            wrappedLines = Arrays.copyOfRange(wrappedLines, 0, maxLinesAmount);
+            wrappedLines[maxLinesAmount - 1] += " ...";
         }
 
-        return Arrays.stream(contentLines).map(Component::text).toList();
+        return Arrays.stream(wrappedLines).map(Component::text).collect(Collectors.toList());
     }
 
 }
