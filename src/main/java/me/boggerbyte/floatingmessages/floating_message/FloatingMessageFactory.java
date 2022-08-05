@@ -1,6 +1,5 @@
 package me.boggerbyte.floatingmessages.floating_message;
 
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Entity;
@@ -34,12 +33,12 @@ public class FloatingMessageFactory {
                 .findFirst().orElse(null);
     }
 
-    private int computeDuration(TextComponent chatMessage) {
-        var readingDuration = chatMessage.content().length() * readSpeed;
+    private int computeDuration(String chatMessage) {
+        var readingDuration = chatMessage.length() * readSpeed;
         return Math.max(minDuration, Math.min(maxDuration, readingDuration));
     }
 
-    public void spawnOn(Entity entity, TextComponent chatMessage) {
+    public void spawnOn(Entity entity, String chatMessage) {
         var currentLinesMount = (AreaEffectCloud) getCurrentMount(entity);
         var currentLinesMountDuration = currentLinesMount == null ? 0 :
                 currentLinesMount.getDuration() - currentLinesMount.getTicksLived();
@@ -51,14 +50,14 @@ public class FloatingMessageFactory {
         Collections.reverse(messageLines);
 
         var lines = new ArrayList<Entity>();
-        for (TextComponent messageLine : messageLines) {
+        for (String messageLine : messageLines) {
             var location = entity.getLocation().add(0, 1, 0);
             var particle = entity.getWorld().spawn(location, AreaEffectCloud.class);
             particle.setRadius(0);
             particle.setWaitTime(0);
             particle.setDuration(duration);
             particle.setCustomNameVisible(true);
-            particle.customName(messageLine);
+            particle.setCustomName(messageLine);
             particle.addScoreboardTag(floatingMessageTag);
             lines.add(particle);
         }

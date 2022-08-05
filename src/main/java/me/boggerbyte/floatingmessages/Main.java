@@ -1,7 +1,7 @@
 package me.boggerbyte.floatingmessages;
 
-import me.boggerbyte.floatingmessages.floating_message.FloatingMessageFormatter;
 import me.boggerbyte.floatingmessages.floating_message.FloatingMessageFactory;
+import me.boggerbyte.floatingmessages.floating_message.FloatingMessageFormatter;
 import me.boggerbyte.floatingmessages.listeners.ChatListener;
 import me.boggerbyte.floatingmessages.utils.Logger;
 import org.bukkit.plugin.Plugin;
